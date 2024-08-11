@@ -3,5 +3,5 @@
 ## Preview
 
 ```sh
-$ python src/example.py
+$ python example.py
 ```
