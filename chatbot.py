@@ -10,16 +10,26 @@ app = ctk.CTk()
 app.geometry("1000x600")  # 幅を1000ピクセルに拡大
 app.title("ChatBot App")
 
-# チャット表示エリア
-chat_frame = ctk.CTkScrollableFrame(app)
-chat_frame.pack(fill="both", expand=True, padx=10, pady=10)  # 幅と高さをウィンドウに合わせる
+# グリッドレイアウトの設定
+app.grid_rowconfigure(0, weight=1)
+app.grid_rowconfigure(1, weight=0)
+app.grid_columnconfigure(0, weight=1)
 
-# ユーザー入力エリア (CTkTextboxを使用)
+# チャット表示エリア (CTkScrollableFrame)
+chat_frame = ctk.CTkScrollableFrame(app)
+chat_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+
+# ユーザー入力エリア (CTkTextboxと送信ボタン)
 input_frame = ctk.CTkFrame(app)
-input_frame.pack(fill="x", padx=10, pady=10)
+input_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+input_frame.grid_columnconfigure(0, weight=1)
+input_frame.grid_columnconfigure(1, weight=0)
 
 entry = ctk.CTkTextbox(input_frame, height=50)
-entry.pack(side="left", fill="both", expand=True, padx=10)
+entry.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+
+send_button = ctk.CTkButton(input_frame, text="Send", command=lambda: send_message())
+send_button.grid(row=0, column=1)
 
 # アイコン画像の読み込み
 you_icon_image = Image.open("you.png")
@@ -53,23 +63,15 @@ def get_bot_response(user_message):
 def add_message_to_chat(sender, message, user=True):
     # メッセージ全体のフレーム
     frame = ctk.CTkFrame(chat_frame, corner_radius=10)
-    frame.pack(fill="x", pady=5, padx=10, anchor="e" if user else "w")  # ユーザーは右寄せ、ボットは左寄せ
+    frame.grid(sticky="ew", padx=10, pady=5)  # 幅いっぱいに広げる
 
-    if user:
-        # ユーザーのメッセージ（アイコンが左、メッセージが右）
-        icon_label = ctk.CTkLabel(frame, image=you_icon, text="")
-        icon_label.pack(side="left", padx=5, pady=5)
+    # アイコンの表示
+    icon_label = ctk.CTkLabel(frame, image=you_icon if user else bot_icon, text="")
+    icon_label.grid(row=0, column=0, padx=5, pady=5)
 
-        message_label = ctk.CTkLabel(frame, text=message, justify="right", wraplength=800)
-        message_label.pack(side="left", fill="both", expand=True, padx=10, pady=5)
-
-    else:
-        # ボットのメッセージ（アイコンが左、メッセージが右）
-        icon_label = ctk.CTkLabel(frame, image=bot_icon, text="")
-        icon_label.pack(side="left", padx=5, pady=5)
-
-        message_label = ctk.CTkLabel(frame, text=message, justify="left", wraplength=800)
-        message_label.pack(side="left", fill="both", expand=True, padx=10, pady=5)
+    # メッセージ内容の表示
+    message_label = ctk.CTkLabel(frame, text=message, justify="left", wraplength=800)
+    message_label.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
     # チャットエリアをスクロールする
     chat_frame._parent_canvas.yview_moveto(1.0)  # 一番下までスクロール
@@ -89,10 +91,6 @@ def auto_resize_text_area(event=None):
     # テキストの行数に応じて高さを変更
     lines = int(entry.index('end-1c').split('.')[0])  # 現在の行数を取得
     entry.configure(height=50 + lines * 20)  # 行数に応じて高さを調整
-
-# 送信ボタン
-send_button = ctk.CTkButton(input_frame, text="Send", command=send_message)
-send_button.pack(side="right", padx=10)  # 送信ボタンもテキストボックスと同じ行に配置
 
 # キーのバインド
 entry.bind("<KeyPress-Return>", handle_return)
