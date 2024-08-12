@@ -30,7 +30,7 @@ file_button = ctk.CTkButton(input_frame, text="File", command=lambda: open_file(
 file_button.grid(row=0, column=0, padx=(0, 10))
 
 # テキスト入力エリア
-entry = ctk.CTkTextbox(input_frame, height=50)
+entry = ctk.CTkTextbox(input_frame, height=40)  # デフォルトの高さを40ピクセルに設定
 entry.grid(row=0, column=1, sticky="ew", padx=(0, 10))
 
 # 送信ボタン
@@ -58,11 +58,15 @@ def send_message(event=None):
         # ユーザーのメッセージを表示
         add_message_to_chat("You", user_message, user=True)
         entry.delete("1.0", "end")  # テキストボックスをクリア
-        entry.configure(height=50)  # メッセージ送信後、エリアの高さをリセット
+        entry.configure(height=40)  # メッセージ送信後、エリアの高さをリセット
 
         # ボットの応答
         bot_response = get_bot_response(user_message)
         add_message_to_chat("Bot", bot_response, user=False)
+
+        # 高さをリセットした後にスクロール
+        entry.configure(height=40)  # ボットメッセージ送信後にエリアの高さをリセット
+        chat_frame._parent_canvas.yview_moveto(1.0)  # 一番下までスクロール
 
 def get_bot_response(user_message):
     # 簡単な応答ロジック（ここをカスタマイズ可能）
@@ -86,8 +90,12 @@ def add_message_to_chat(sender, message, user=True):
     message_label = ctk.CTkLabel(frame, text=message, justify="left", wraplength=800)
     message_label.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
-    # チャットエリアをスクロールする
-    chat_frame._parent_canvas.yview_moveto(1.0)  # 一番下までスクロール
+# 改行の数に基づいてテキストエリアの高さを調整する
+def adjust_textbox_height(event=None):
+    current_text = entry.get("1.0", "end-1c")
+    current_lines = current_text.count('\n') + 1  # 現在の改行数 + 1行
+    new_height = 40 + (current_lines - 1) * 20  # デフォルト40に追加行数分の高さを加える
+    entry.configure(height=new_height)
 
 # Shift + Enterで改行し、Enterで送信する処理
 def handle_return(event):
@@ -96,18 +104,12 @@ def handle_return(event):
         return "break"  # デフォルトの動作を無効化
     elif event.keysym == "Return" and event.state == 1:
         entry.insert(ctk.END, "\n")
-        auto_resize_text_area()
+        adjust_textbox_height()  # 改行のタイミングで高さを調整
         return "break"  # デフォルトの動作を無効化
-
-# テキストエリアの高さを自動調整する
-def auto_resize_text_area(event=None):
-    # テキストの行数に応じて高さを変更
-    lines = int(entry.index('end-1c').split('.')[0])  # 現在の行数を取得
-    entry.configure(height=50 + lines * 20)  # 行数に応じて高さを調整
 
 # キーのバインド
 entry.bind("<KeyPress-Return>", handle_return)
-entry.bind("<KeyRelease>", auto_resize_text_area)  # キー入力のたびに高さを調整
+entry.bind("<KeyRelease>", adjust_textbox_height)  # 改行が減った場合も含めて高さを調整
 
 # メインループ開始
 app.mainloop()
