@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import filedialog
 from PIL import Image
 
 # 初期設定
@@ -19,17 +20,22 @@ app.grid_columnconfigure(0, weight=1)
 chat_frame = ctk.CTkScrollableFrame(app)
 chat_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-# ユーザー入力エリア (CTkTextboxと送信ボタン)
+# ユーザー入力エリア (CTkTextbox、ファイルボタン、送信ボタン)
 input_frame = ctk.CTkFrame(app)
 input_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
-input_frame.grid_columnconfigure(0, weight=1)
-input_frame.grid_columnconfigure(1, weight=0)
+input_frame.grid_columnconfigure(1, weight=1)  # テキストエリアの列を拡張可能に設定
 
+# ファイル入力ボタン
+file_button = ctk.CTkButton(input_frame, text="File", command=lambda: open_file())
+file_button.grid(row=0, column=0, padx=(0, 10))
+
+# テキスト入力エリア
 entry = ctk.CTkTextbox(input_frame, height=50)
-entry.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+entry.grid(row=0, column=1, sticky="ew", padx=(0, 10))
 
+# 送信ボタン
 send_button = ctk.CTkButton(input_frame, text="Send", command=lambda: send_message())
-send_button.grid(row=0, column=1)
+send_button.grid(row=0, column=2)
 
 # アイコン画像の読み込み
 you_icon_image = Image.open("you.png")
@@ -37,6 +43,13 @@ you_icon = ctk.CTkImage(you_icon_image, size=(60, 60))
 
 bot_icon_image = Image.open("bot.png")
 bot_icon = ctk.CTkImage(bot_icon_image, size=(60, 60))
+
+# ファイル選択処理
+def open_file():
+    file_path = filedialog.askopenfilename()
+    if file_path:
+        add_message_to_chat("You", f"File selected: {file_path}", user=True)
+        # ファイルの内容を処理する場合は、ここに処理を追加します
 
 # メッセージ送信とボット応答処理
 def send_message(event=None):
